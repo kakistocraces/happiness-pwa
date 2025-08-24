@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Happiness Plan PWA</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111111">
+  <link rel="icon" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" sizes="512x512" href="icons/icon-512.png">
+  <style>
+    :root { --bg:#0f1115; --fg:#eaeaea; --muted:#a0a0a0; --card:#161920; --acc:#4da3ff; }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;}
+    header{padding:16px 20px;border-bottom:1px solid #222;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    header h1{font-size:18px;margin:0;font-weight:600}
+    nav{display:flex;gap:8px;flex-wrap:wrap}
+    nav button{background:#1c2230;color:var(--fg);border:1px solid #2a3142;border-radius:8px;padding:10px 12px;cursor:pointer}
+    nav button.active{outline:2px solid var(--acc);}
+    main{max-width:900px;margin:0 auto;padding:20px;display:grid;gap:16px}
+    .card{background:var(--card);border:1px solid #222; border-radius:12px;padding:16px}
+    label{display:block;margin:8px 0 4px;color:var(--muted);font-size:12px}
+    input,select,textarea{width:100%;background:#0f1219;color:var(--fg);border:1px solid #2a3142;border-radius:8px;padding:10px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+    .btn{background:var(--acc);color:#08111f;border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}
+    .btn.secondary{background:#1c2230;color:var(--fg);border:1px solid #2a3142}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+    th,td{border:1px solid #2a3142;padding:6px 8px;text-align:left}
+    th{background:#0f1219;color:#cbd5e1}
+    .muted{color:var(--muted)}
+    footer{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+    .hidden{display:none}
+    textarea{min-height:180px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Happiness Plan</h1>
+    <nav>
+      <button id="tab-plan" class="active">Plan</button>
+      <button id="tab-cardio">Cardio</button>
+      <button id="tab-export">Export</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- PLAN -->
+    <section id="sec-plan" class="card">
+      <h2>Tomorrow Plan (Code 2)</h2>
+      <div class="row3">
+        <div>
+          <label for="plan-date">Date</label>
+          <input id="plan-date" type="date">
+        </div>
+        <div>
+          <label for="incline">Treadmill Incline</label>
+          <input id="incline" type="number" step="0.5" value="8">
+        </div>
+        <div>
+          <label for="speed">Treadmill Speed</label>
+          <input id="speed" type="number" step="0.1" value="3.9">
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-gen-plan" class="btn">Generate Org Block</button>
+        <button id="btn-copy-plan" class="btn secondary">Copy</button>
+      </div>
+      <label>Org output</label>
+      <textarea id="plan-output" readonly></textarea>
+      <p class="muted">This creates your StairMaster → Treadmill plan, elbow‑safe back block, steps, meals, pack‑list, and watchlist. Matches your Emacs version.</p>
+    </section>
+
+    <!-- CARDIO -->
+    <section id="sec-cardio" class="card hidden">
+      <h2>Cardio Table</h2>
+      <div class="row3">
+        <div>
+          <label for="cardio-date">Date</label>
+          <input id="cardio-date" type="date">
+        </div>
+        <div>
+          <label for="modality">Modality</label>
+          <select id="modality">
+            <option>StairMaster</option>
+            <option>Treadmill</option>
+            <option>Bike</option>
+            <option>Row</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="minutes">Minutes</label>
+          <input id="minutes" type="number" step="1" value="0">
+        </div>
+      </div>
+
+      <div class="row4">
+        <div>
+          <label for="incl">Incline (- if N/A)</label>
+          <input id="incl" type="number" step="0.1" value="-">
+        </div>
+        <div>
+          <label for="spd">Speed (- if N/A)</label>
+          <input id="spd" type="number" step="0.1" value="-">
+        </div>
+        <div>
+          <label for="rpe">RPE (1–10)</label>
+          <input id="rpe" type="number" step="0.5" min="1" max="10" value="6.5">
+        </div>
+        <div>
+          <label for="notes">Notes</label>
+          <input id="notes" type="text" placeholder="until form break, etc.">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn-add-row" class="btn">Add Row</button>
+        <button id="btn-clear-rows" class="btn secondary">Clear</button>
+      </div>
+
+      <table id="rows-table">
+        <thead>
+          <tr><th>Date</th><th>Modality</th><th>Minutes</th><th>Incline</th><th>Speed</th><th>RPE</th><th>Notes</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="actions">
+        <button id="btn-gen-cardio" class="btn">Generate Org Table</button>
+        <button id="btn-copy-cardio" class="btn secondary">Copy</button>
+      </div>
+      <label>Org output</label>
+      <textarea id="cardio-output" readonly></textarea>
+      <p class="muted">Outputs a named table: <code>#+name: cardio-table-YYYY-MM-DD</code>. Your R block parses these automatically.</p>
+    </section>
+
+    <!-- EXPORT -->
+    <section id="sec-export" class="card hidden">
+      <h2>Export</h2>
+      <div class="actions">
+        <button id="btn-combine" class="btn">Combine Plan + Cardio</button>
+        <button id="btn-copy-combined" class="btn secondary">Copy</button>
+        <button id="btn-download-org" class="btn secondary">Download .org</button>
+        <button id="btn-share" class="btn secondary">Share</button>
+      </div>
+      <label>Combined Org</label>
+      <textarea id="combined-output" readonly></textarea>
+      <p class="muted">Paste this into <code>transform.org</code> when you’re back at the computer.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>Works offline after install. &middot; MI: encourage only; no shame.</span>
+  </footer>
+
+  <script>
+    // --- Tab logic ---
+    const tabs = { plan: 'sec-plan', cardio: 'sec-cardio', export: 'sec-export' };
+    function showTab(name){
+      Object.values(tabs).forEach(id => document.getElementById(id).classList.add('hidden'));
+      document.getElementById(tabs[name]).classList.remove('hidden');
+      document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+      document.getElementById('tab-'+name).classList.add('active');
+    }
+    document.getElementById('tab-plan').onclick = ()=>showTab('plan');
+    document.getElementById('tab-cardio').onclick = ()=>showTab('cardio');
+    document.getElementById('tab-export').onclick = ()=>showTab('export');
+
+    // --- Defaults (tomorrow) ---
+    function ymd(d){ return d.toISOString().slice(0,10); }
+    const today = new Date();
+    const tomorrow = new Date(today.getTime()+86400000);
+    document.getElementById('plan-date').value = ymd(tomorrow);
+    document.getElementById('cardio-date').value = ymd(tomorrow);
+
+    // --- Plan generation ---
+    function planBlock(date, incline, speed){
+      return `* PLAN :: ${date} (Code 2)
+** Cardio (after work)
+#+name: cardio-table-${date}
+| Date       | Modality    | Minutes | Incline | Speed | RPE | Notes                         |
+|------------+-------------+---------+---------+-------+-----+-------------------------------|
+| ${date} | StairMaster |         |   -     |   -   | 7-8 | until technical form break     |
+| ${date} | Treadmill   |         |   ${incline}     |  ${speed}  | 6-7 | cool-down 3-5 min               |
+
+** Back (with Bernardo, elbow-safe)
+#+name: back-${date}
+| Exercise                              | Sets×Reps | Tempo | Notes                         |
+|---------------------------------------+-----------+-------+-------------------------------|
+| Lat pullover / elbow-pad pulldown     |   3×8-12  | 3-1-1 | elbows-to-hips                |
+| Chest-supported row (neutral handle)  |   3×8-12  | 2-0-2 | straps/open hand if needed    |
+| Reverse pec deck                      |   3×12-15 | 2-1-2 | no shrug; squeeze rear delts  |
+| Straight-arm cable pulldown           | 2-3×12-15 | 2-0-2 | cuffs/straps; soft elbows     |
+
+** Steps
+- Floor: 8000
+- Stretch: 10000
+
+** Meals
+- AM: egg whites + veggies + salsa/pico
+- Pre-gym (if >3h since last): protein yogurt or shake + fruit
+- Post-gym: protein shake; then rotation dinner (no chips)
+
+** Pack-list
+- [ ] Clothes  [ ] Towel  [ ] Shoes  [ ] Water bottle
+- [ ] Protein powder + shaker  [ ] Headphones  [ ] Lock
+- [ ] Optional straps/band
+
+** Watchlist (queue 2-3)
+- [ ] Doupo fight  [ ] Wemby highlights  [ ] ITTF rallies / Drumeo / Gojira live`;
+    }
+
+    document.getElementById('btn-gen-plan').onclick = ()=>{
+      const d = document.getElementById('plan-date').value;
+      const inc = document.getElementById('incline').value || '8';
+      const spd = document.getElementById('speed').value || '3.9';
+      document.getElementById('plan-output').value = planBlock(d, inc, spd);
+      localStorage.setItem('plan-output', document.getElementById('plan-output').value);
+    };
+    document.getElementById('btn-copy-plan').onclick = async ()=>{
+      const val = document.getElementById('plan-output').value;
+      if(!val){ alert('Generate the Plan first.'); return; }
+      await navigator.clipboard.writeText(val);
+    };
+
+    // --- Cardio rows state ---
+    let rows = JSON.parse(localStorage.getItem('cardio-rows') || '[]');
+    function renderRows(){
+      const tbody = document.querySelector('#rows-table tbody');
+      tbody.innerHTML = '';
+      rows.forEach((r, i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.date}</td><td>${r.mod}</td><td>${r.min}</td><td>${r.inc}</td><td>${r.spd}</td><td>${r.rpe}</td><td>${r.notes||''}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    renderRows();
+
+    document.getElementById('btn-add-row').onclick = ()=>{
+      const d = document.getElementById('cardio-date').value;
+      const mod = document.getElementById('modality').value;
+      const min = document.getElementById('minutes').value || '0';
+      const inc = document.getElementById('incl').value || '-';
+      const spd = document.getElementById('spd').value || '-';
+      const rpe = document.getElementById('rpe').value || '';
+      const notes = document.getElementById('notes').value || '';
+      rows.push({date:d, mod:mod, min:min, inc:inc, spd:spd, rpe:rpe, notes:notes});
+      localStorage.setItem('cardio-rows', JSON.stringify(rows));
+      renderRows();
+      document.getElementById('minutes').value = '0';
+      document.getElementById('notes').value = '';
+    };
+
+    document.getElementById('btn-clear-rows').onclick = ()=>{
+      if(confirm('Clear all rows?')){
+        rows = [];
+        localStorage.removeItem('cardio-rows');
+        renderRows();
+      }
+    };
+
+    function cardioTableForDate(date){
+      const subset = rows.filter(r => r.date === date);
+      const hdr = `#+name: cardio-table-${date}
+| Date       | Modality    | Minutes | Incline | Speed | RPE | Notes                 |
+|------------+-------------+---------+---------+-------+-----+-----------------------|`;
+      const lines = subset.map(r => `| ${r.date} | ${r.mod} | ${r.min} | ${r.inc} | ${r.spd} | ${r.rpe} | ${r.notes} |`);
+      return [hdr].concat(lines).join('\n');
+    }
+
+    document.getElementById('btn-gen-cardio').onclick = ()=>{
+      const d = document.getElementById('cardio-date').value;
+      const out = cardioTableForDate(d);
+      document.getElementById('cardio-output').value = out;
+      localStorage.setItem('cardio-output', out);
+    };
+    document.getElementById('btn-copy-cardio').onclick = async ()=>{
+      const val = document.getElementById('cardio-output').value;
+      if(!val){ alert('Generate the cardio Org table first.'); return; }
+      await navigator.clipboard.writeText(val);
+    };
+
+    // --- Export ---
+    document.getElementById('btn-combine').onclick = ()=>{
+      const p = document.getElementById('plan-output').value || localStorage.getItem('plan-output') || '';
+      const c = document.getElementById('cardio-output').value || localStorage.getItem('cardio-output') || '';
+      const combined = [p, c].filter(Boolean).join('\n\n');
+      document.getElementById('combined-output').value = combined;
+    };
+    document.getElementById('btn-copy-combined').onclick = async ()=>{
+      const val = document.getElementById('combined-output').value;
+      if(!val){ alert('Click Combine first.'); return; }
+      await navigator.clipboard.writeText(val);
+    };
+    document.getElementById('btn-download-org').onclick = ()=>{
+      const val = document.getElementById('combined-output').value;
+      if(!val){ alert('Click Combine first.'); return; }
+      const blob = new Blob([val], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'plan-cardio.org';
+      a.click();
+    };
+    document.getElementById('btn-share').onclick = async ()=>{
+      const val = document.getElementById('combined-output').value;
+      if(navigator.share && val){
+        try{ await navigator.share({text: val, title: 'Happiness Plan'});}catch(e){}
+      } else {
+        alert('Share API not available. Use Copy.');
+      }
+    };
+
+    // --- PWA ---
+    if ('serviceWorker' in navigator){
+      window.addEventListener('load', ()=>{
+        navigator.serviceWorker.register('service-worker.js').catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>
